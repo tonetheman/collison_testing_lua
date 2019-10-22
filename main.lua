@@ -58,18 +58,59 @@ local balls = {}
 
 function love.mousereleased(x,y,button)
     local b = Ball.create(x,y)
-    b.dx = math.random(50)
-    b.dy = math.random(50)
+    -- place ball does not move
+    --b.dx = math.random(50)
+    --b.dy = math.random(50)
     b.growing = true
     balls[COUNT+1] = b
     COUNT = COUNT + 1
 end
+
+function circle_vs_circle(c1x, c1y, r1, c2x, c2y, r2)
+    local dx, dy = c1x - c2x, c1y - c2y
+    local distSq = dx*dx + dy*dy
+    local radii = r1 + r2
+    if distSq > radii*radii then
+      return false
+    end
+    return true
+  end
 
 function love.update(dt)
     for i=1,COUNT do
         local b = balls[i]
         if b ~= nil then
             b:update(dt)
+        end
+    end
+
+    -- now check if growing needs to infect more balls
+    for i=1,COUNT do
+        local b = balls[i]
+        if b.growing then
+            for j=1,COUNT do
+                if i~=j then
+                    -- how to do collision check here
+                    local tmp = balls[j]
+
+                    -- if tmp is not already growing check for infect
+                    if not tmp.growing then
+                        if circle_vs_circle(tmp.x,tmp.y,tmp.size,b.x,b.y,b.size) then
+                            b.growing = true
+                        end
+                    end
+                    --[[
+                    local dist = math.sqrt(
+                        (tmp.x-b.x)*(tmp.x-b.x) + (tmp.y-b.y)*(tmp.y-b.y))
+
+                    if  dist-(tmp.size+b.size)>0 then
+                        tmp.growing = true
+                    end
+
+                    ]]
+
+                end
+            end
         end
     end
 end
