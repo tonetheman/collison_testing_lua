@@ -12,8 +12,6 @@ class Player {
         this.graphics.x = x;
         this.graphics.y = y;
         this.radius = 3;
-        this.graphics.fillStyle(0xff0000,1);
-        this.graphics.fillCircle(0,0,this.radius);
         this.dying = false;
         this.mut = 0.1;
     }
@@ -38,17 +36,28 @@ class Player {
             this.dy *= -1;
         }
 
-        if (this.dying) {
-            this.radius += this.mut;
-            if (this.radius>12) {
-                this.mut = -0.1;
-            }
+        this.radius += this.mut;
+        if (this.radius>25) {
+            this.mut = -1;
         }
+        if (this.radius<3) {
+            this.mut = 1;
+        }
+
+        // erase the graphics
+        this.graphics.fillStyle(0x000000,1);
+        this.graphics.fillCircle(0,0,this.radius);
 
         // change the graphics
         this.graphics.x = this.x;
         this.graphics.y = this.y;
         this.graphics.radius = this.radius;
+
+        // redraw the graphics
+        this.graphics.fillStyle(0xff0000,1);
+        this.graphics.fillCircle(0,0,this.radius);
+
+
     }
 }
 
@@ -61,7 +70,7 @@ class GameScene extends Phaser.Scene {
     }
     create() {
         this.players = [];
-        for(let i=0;i<10;i++) {
+        for(let i=0;i<2;i++) {
             let p = new Player(800/2,600/2,this.add.graphics());
             p.dx = Phaser.Math.Between(-100,100);
             p.dy = Phaser.Math.Between(-100,100);
