@@ -66,7 +66,7 @@ class Dot {
       dy : getDxDy(90),
       radius : DEFAULT_RADIUS,
       color : "red",
-      mut : 1,
+      mut : 0.7,
       exploding : false,
       render : function() {
         if (this.radius<0) return;
@@ -211,6 +211,7 @@ class GameScene {
   }
   
   init() {
+    this.playSounds = true;
     this.score = 0;
     this.scoreGui = new Text(10,10,this.score);
     this.placeDots();
@@ -247,19 +248,22 @@ class GameScene {
     //});
 
     // gross
-    let r = getRandomInt(10)
-    if (r<3) {
-      let a = new Audio();
-      a.src = jsfxr(sound1);
-      a.play();
-    } else if (r<6) {
-      let a = new Audio();
-      a.src = jsfxr(sound0);
-      a.play();      
-    } else {
-      let a = new Audio();
-      a.src = jsfxr(sound2);
-      a.play();      
+    if (this.playSounds) {
+      let r = getRandomInt(10)
+      if (r<3) {
+        let a = new Audio();
+        a.src = jsfxr(sound1);
+        a.play();
+      } else if (r<6) {
+        let a = new Audio();
+        a.src = jsfxr(sound0);
+        a.play();      
+      } else {
+        let a = new Audio();
+        a.src = jsfxr(sound2);
+        a.play();      
+      }
+  
     }
 
   }
@@ -279,10 +283,21 @@ class GameScene {
     this.placeDots();
   }
 
+  toggleSound() {
+    if (this.playSounds) {
+      this.playSounds = false;
+    } else {
+      this.playSounds = true;
+    }
+  }
+  
   update() {
     if (keyPressed("r")) {
       // need to reset everything!
       this.resetGame();
+    }
+    if (keyPressed("s")) {
+      this.toggleSound();
     }
 
     for(let i=0;i<DOTCOUNT;i++) {
