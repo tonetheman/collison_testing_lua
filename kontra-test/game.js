@@ -2,7 +2,7 @@ let { init, Sprite, GameLoop, initPointer, track, onPointerUp } = kontra;
 
 let W = 600;
 let H = 400;
-let DOTCOUNT = 50;
+let DOTCOUNT = 100;
 let dt = 1/60.0;
 let DEFAULT_RADIUS = 5;
 let STATE_GAME_PRE_CLICK = 0;
@@ -11,6 +11,7 @@ let GROW_RADIUS=40;
 
 let state = STATE_GAME_PRE_CLICK; // we start out waiting on the click
 
+let sound1 = [3,0.0656,0.0789,0.1388,0.437,0.1593,,0.0893,0.3823,,,-0.9409,,0.8039,0.0878,0.3856,-0.2214,0.7559,0.8714,-0.3454,-0.6375,,-0.0024,0.5];
 let currentScene = null;
 let gameScene = null;
 
@@ -30,6 +31,26 @@ function getDxDy(n) {
     res -= 20;
   }
   return res;
+}
+
+class Text {
+  constructor(x,y,msg) {
+    this.sprite = Sprite({
+      x : x,
+      y : y,
+      msg : msg,
+      render : function() {
+        this.context.fillStyle = "white";
+        this.context.fillText(this.msg,this.x,this.y);
+      }
+    })
+  }
+  set(v) {
+    this.sprite.msg=v;
+  }
+  render() {
+    this.sprite.render();
+  }
 }
 
 class Dot {
@@ -137,14 +158,50 @@ class LoadingScene {
   }
 }
 
+/*
+let PLAYERCOUNT = 3;
+class SoundPlayer {
+  constructor() {
+    this.avail = [];
+    this.players = [];
+    for (let i=0;i<PLAYERCOUNT;i++) {
+      let a = new Audio();
+      a.src = jsfxr(sound1);
+      this.players.push(a);
+      this.avail.push(true);
+    }
+  }
+  play() {
+    // try one of the available players
+    // if it does not work just forget it
+    for (let i=0;i<PLAYERCOUNT;i++) {
+      if (this.avail[i]) {
+        this.avail[i] = false;
+        let p = this.players[i].play();
+        p.catch(e=>{
+          console.log(e);
+        });
+        this.avail[i] = true;
+      }
+    }
+  }
+}
+*/
+
 class GameScene {
   constructor() {
   }
   init() {
+    this.score = 0;
+    this.scoreGui = new Text(10,10,this.score);
+
+    //this.sp = new SoundPlayer();
     this.dots = [];
     for(let i=0;i<DOTCOUNT;i++) {
       this.dots.push(new Dot(W/2,H/2));
-    }  
+    }
+    //this.a = new Audio();
+    //this.a.src = jsfxr(sound1);
   }
   onPointerUp(e,obj) {
     if (state==STATE_GAME_PRE_CLICK) {
@@ -156,11 +213,37 @@ class GameScene {
       DOTCOUNT++;
     }  
   }
+  play1() {
+    // not working
+    //this.sp.play();
+
+    // working not doing what i want
+    //this.a.play().catch(e=>{
+    //  console.log(e);
+    //})
+
+    // better but messes up
+    //this.a.src = jsfxr(sound1);
+    //this.a.play();
+
+    //this.a.src = jsfxr(sound1);
+    //this.a.play().catch(e=>{
+    //  console.log(e);
+    //});
+
+    // gross
+    let a = new Audio();
+    a.src = jsfxr(sound1);
+    a.play();
+
+  }
   update() {
     for(let i=0;i<DOTCOUNT;i++) {
       this.dots[i].update();
-    }  
+    }
+
     // now check if exploding needs to spread
+    let exploding_count = 0;
     for (let i=0;i<DOTCOUNT;i++) {
       for (let j=0;j<DOTCOUNT;j++) {
         if (i!=j && this.dots[i].getExploding() && !this.dots[j].getExploding()) {
@@ -169,15 +252,22 @@ class GameScene {
             // they hit j should explode too
             this.dots[j].setExploding(true);
             this.dots[j].setDxDy(0,0); // stop forward movement
+            exploding_count++;
+            this.play1();
           }
         }
       }
     }
+  
+    this.score += exploding_count;
+    this.scoreGui.set(this.score);
+  
   }
   render() {
     for(let i=0;i<DOTCOUNT;i++) {
       this.dots[i].render();
-    }  
+    } 
+    this.scoreGui.render();
   }
 }
 
@@ -192,6 +282,7 @@ function initGame() {
 
   // set current scene
   currentScene = gameScene;
+
 }
 
 function gameUpdate() {
