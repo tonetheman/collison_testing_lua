@@ -1,4 +1,4 @@
-let { init, Sprite, GameLoop, initPointer, track, onPointerUp } = kontra;
+let { init, Sprite, GameLoop, initPointer, initKeys, keyPressed, track, onPointerUp } = kontra;
 
 let W = 600;
 let H = 400;
@@ -11,7 +11,11 @@ let GROW_RADIUS=40;
 
 let state = STATE_GAME_PRE_CLICK; // we start out waiting on the click
 
-let sound1 = [3,0.0656,0.0789,0.1388,0.437,0.1593,,0.0893,0.3823,,,-0.9409,,0.8039,0.0878,0.3856,-0.2214,0.7559,0.8714,-0.3454,-0.6375,,-0.0024,0.5];
+let sound0 = [2,0.0096,0.27,0.1763,0.33,0.57,,,-0.0002,,,0.4152,0.6401,,0.2559,0.2165,-0.52,0.36,0.44,-0.0421,0.3,0.37,-0.4599,0.5];
+let sound1 = [2,0.0096,0.27,0.1763,0.33,0.4,,,-0.0002,,,0.4152,0.6401,,0.2559,0.2165,-0.52,0.36,0.44,-0.0421,0.3,0.37,-0.4599,0.5];
+let sound2 = [2,0.0096,0.27,0.1763,0.33,0.84,,,-0.0002,,,0.4152,0.6401,,0.2559,0.2165,-0.52,0.36,0.44,-0.0421,0.3,0.37,-0.4599,0.5];
+//let sound1 = [2,0.1835,0.01,0.2173,0.4978,0.6106,,0.0038,-0.842,0.4824,,-0.9872,-0.0367,0.273,-0.2252,-0.8684,,-0.4874,0.947,0.8019,0.0755,0.0187,,0.5];
+//let sound1 = [3,0.0656,0.0789,0.1388,0.437,0.1593,,0.0893,0.3823,,,-0.9409,,0.8039,0.0878,0.3856,-0.2214,0.7559,0.8714,-0.3454,-0.6375,,-0.0024,0.5];
 let currentScene = null;
 let gameScene = null;
 
@@ -73,6 +77,20 @@ class Dot {
         this.context.fill();
       }
     })
+  }
+  pickColor() {
+    let r = getRandomInt(10);
+    if (r<2) {
+      this.sprite.color = "blue";
+    } else if (r<4) {
+      this.sprite.color = "green";
+    } else if (r<6) {
+      this.sprite.color = "yellow";
+    } else if (r<8) {
+      this.sprite.color = "red";
+    } else {
+      this.sprite.color = "white";
+    }
   }
   getExploding() {
     return this.sprite.exploding;
@@ -191,18 +209,13 @@ class SoundPlayer {
 class GameScene {
   constructor() {
   }
+  
   init() {
     this.score = 0;
     this.scoreGui = new Text(10,10,this.score);
-
-    //this.sp = new SoundPlayer();
-    this.dots = [];
-    for(let i=0;i<DOTCOUNT;i++) {
-      this.dots.push(new Dot(W/2,H/2));
-    }
-    //this.a = new Audio();
-    //this.a.src = jsfxr(sound1);
+    this.placeDots();
   }
+
   onPointerUp(e,obj) {
     if (state==STATE_GAME_PRE_CLICK) {
       let player = new Dot();
@@ -211,8 +224,10 @@ class GameScene {
       player.setExploding(true);
       this.dots.push(player);
       DOTCOUNT++;
+      this.score--;
     }  
   }
+  
   play1() {
     // not working
     //this.sp.play();
@@ -232,12 +247,44 @@ class GameScene {
     //});
 
     // gross
-    let a = new Audio();
-    a.src = jsfxr(sound1);
-    a.play();
+    let r = getRandomInt(10)
+    if (r<3) {
+      let a = new Audio();
+      a.src = jsfxr(sound1);
+      a.play();
+    } else if (r<6) {
+      let a = new Audio();
+      a.src = jsfxr(sound0);
+      a.play();      
+    } else {
+      let a = new Audio();
+      a.src = jsfxr(sound2);
+      a.play();      
+    }
 
   }
+
+  placeDots() {
+    DOTCOUNT = 100;
+    this.dots = [];
+    for(let i=0;i<DOTCOUNT;i++) {
+      //this.dots.push(new Dot(W/2,H/2));
+      this.dots.push(new Dot(getRandomInt(W),getRandomInt(H)))
+    }
+  }
+
+  resetGame() {
+    this.score = 0;
+    this.scoreGui = new Text(10,10,this.score);
+    this.placeDots();
+  }
+
   update() {
+    if (keyPressed("r")) {
+      // need to reset everything!
+      this.resetGame();
+    }
+
     for(let i=0;i<DOTCOUNT;i++) {
       this.dots[i].update();
     }
@@ -252,6 +299,7 @@ class GameScene {
             // they hit j should explode too
             this.dots[j].setExploding(true);
             this.dots[j].setDxDy(0,0); // stop forward movement
+            this.dots[j].pickColor();
             exploding_count++;
             this.play1();
           }
@@ -307,6 +355,8 @@ function gameOnPointerUp(e,obj) {
 function mainline() {
 
   let { canvas } = init();
+
+  initKeys();
 
   initPointer();
 
