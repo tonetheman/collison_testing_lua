@@ -2,12 +2,14 @@ let { init, Sprite, GameLoop, initPointer, initKeys, keyPressed, track, onPointe
 
 let W = 600;
 let H = 400;
-let DOTCOUNT = 100;
+let DEFAULT_DOTCOUNT = 30;
+let DOTCOUNT = DEFAULT_DOTCOUNT;
 let dt = 1/60.0;
 let DEFAULT_RADIUS = 5;
 let STATE_GAME_PRE_CLICK = 0;
 let STATE_CLICKED = 1;
 let GROW_RADIUS=40;
+let DEFAULT_MUT = 0.8;
 
 let state = STATE_GAME_PRE_CLICK; // we start out waiting on the click
 
@@ -66,7 +68,7 @@ class Dot {
       dy : getDxDy(90),
       radius : DEFAULT_RADIUS,
       color : "red",
-      mut : 0.7,
+      mut : DEFAULT_MUT,
       exploding : false,
       render : function() {
         if (this.radius<0) return;
@@ -145,8 +147,8 @@ class Dot {
         this.sprite.mut = -1;
       }
       if (this.sprite.radius<=0) {
-        this.sprite.x = -10;
-        this.sprite.y = -10;
+        this.sprite.x = -100;
+        this.sprite.y = -100;
         this.sprite.exploding = false;
         this.radius = 1;
         // TODO: need to remove
@@ -176,42 +178,12 @@ class LoadingScene {
   }
 }
 
-/*
-let PLAYERCOUNT = 3;
-class SoundPlayer {
-  constructor() {
-    this.avail = [];
-    this.players = [];
-    for (let i=0;i<PLAYERCOUNT;i++) {
-      let a = new Audio();
-      a.src = jsfxr(sound1);
-      this.players.push(a);
-      this.avail.push(true);
-    }
-  }
-  play() {
-    // try one of the available players
-    // if it does not work just forget it
-    for (let i=0;i<PLAYERCOUNT;i++) {
-      if (this.avail[i]) {
-        this.avail[i] = false;
-        let p = this.players[i].play();
-        p.catch(e=>{
-          console.log(e);
-        });
-        this.avail[i] = true;
-      }
-    }
-  }
-}
-*/
-
 class GameScene {
   constructor() {
   }
   
   init() {
-    this.playSounds = true;
+    this.playSounds = false;
     this.score = 0;
     this.scoreGui = new Text(10,10,this.score);
     this.placeDots();
@@ -225,27 +197,11 @@ class GameScene {
       player.setExploding(true);
       this.dots.push(player);
       DOTCOUNT++;
-      this.score--;
+      //this.score--;
     }  
   }
   
   play1() {
-    // not working
-    //this.sp.play();
-
-    // working not doing what i want
-    //this.a.play().catch(e=>{
-    //  console.log(e);
-    //})
-
-    // better but messes up
-    //this.a.src = jsfxr(sound1);
-    //this.a.play();
-
-    //this.a.src = jsfxr(sound1);
-    //this.a.play().catch(e=>{
-    //  console.log(e);
-    //});
 
     // gross
     if (this.playSounds) {
@@ -269,7 +225,8 @@ class GameScene {
   }
 
   placeDots() {
-    DOTCOUNT = 100;
+    // resetting dot count
+    DOTCOUNT = DEFAULT_DOTCOUNT;
     this.dots = [];
     for(let i=0;i<DOTCOUNT;i++) {
       //this.dots.push(new Dot(W/2,H/2));
@@ -290,7 +247,7 @@ class GameScene {
       this.playSounds = true;
     }
   }
-  
+
   update() {
     if (keyPressed("r")) {
       // need to reset everything!
